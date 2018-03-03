@@ -1,0 +1,210 @@
+entity Broker {
+	brokerName String required
+}
+
+entity Plant {
+	plantName String required,
+    city String,
+    state String,
+    zip String,
+    accountOwner User
+}
+
+entity User {
+	user String required,
+    email String required,
+    password String required,
+    createDate Date,
+    lastLoginDate Date
+    
+}
+
+// an ignored comment
+/** not an ignored comment */
+entity Destination {
+	name String required,
+	postalCode String,
+	city String,
+	stateProvince String
+}
+
+entity Department {
+	departmentName String required
+}
+
+enum GradeCodeType {
+	COMPOSITE,
+    DISPOSAL,
+    DOWNGRADE,
+    ENVELOPE,
+    FREESHEET,
+    GROUNDWOOD,
+    MIXED,
+    SBS, 
+    UNBLEACHED,
+    ALUMINUM,
+    PLASTIC_PVC,
+    PLASTICWINDOW
+}
+enum PackageType {
+	BALED,
+    LOOSE, 
+    BUNDLES_TORPEDO,
+    GAYLORDS,
+    PALLETS,
+    ROLLS,
+    BUTT_ROLLS,
+    COMPACTORS_ROLL_OFF,
+    PALLETS_BOXES
+}
+
+entity GradeCode {
+	name String required,
+    description String,
+    gradeCodeType GradeCodeType,
+    packageType PackageType
+}
+
+entity ShipmentRequest {
+	
+    loadnumber String required,
+	shippeddate Date,
+	receiveddate Date,
+    trailer String,
+	pickupno String,
+	plant Plant,
+	destination Destination,
+	transportationmode String,
+	carrier String,
+	broker Broker
+}
+ entity ShipmentItem {
+ 	parent ShipmentRequest
+	pricelist PriceList,
+	quantity Float,
+	weight Double,
+    estimatedRevenue Double
+ }
+ entity BrokerReceipt {
+ 	parent ShipmentItem
+	pricelist PriceList,
+	quantity Float,
+	weight Double,
+    actualRevenue Double
+ }
+ entity Payment {
+ 	parent ShipmentItem
+	paymentDate Date,
+	checkOrACH String,
+	amount Double,
+ 	totalPayment Double
+ }
+entity BrokerData {
+	loadnumber String required,
+	detailid String required,
+	shippeddate Date,
+	receiveddate Date,
+    trailer String,
+	pickupno String,
+	plant Plant,
+	pricelist String,
+	quantity Float,
+	weight Double,
+	uom String,
+	price Double,
+	priceuom String,
+	revenue Double,
+	status String,
+	destination Destination,
+	transportationmode String,
+	carrier String,
+	inventory String,
+	adjustment String,
+	broker Broker,
+	plant Plant
+}
+
+entity PriceList {
+	name String required,
+    gradeCode GradeCode required,
+    month Date,
+    year Date,
+    uom String,
+    millPrice Double,
+    commission Double,
+    netPrice Double,
+    destination Destination
+    
+}
+/**
+ * Task entity.
+ * @author The JHipster team.
+ */
+
+enum Language {
+    FRENCH, ENGLISH, SPANISH
+}
+
+relationship OneToOne {
+	Country{region} to Region
+}
+
+relationship OneToOne {
+	Location{country} to Country
+}
+
+relationship OneToOne {
+	Department{location} to Location
+}
+
+relationship ManyToMany {
+	Job{task(title)} to Task{job},
+    PriceList{gradeCode} to GradeCode,
+    PriceList{destination} to Destination
+    
+}
+
+// defining multiple OneToMany relationships with comments
+relationship OneToMany {
+    Plant{accountOwner} to User,
+    ShipmentItem{parent} to ShipmentRequest,
+    BrokerReceipt{parent} to ShipmentItem,
+    Payment{parent} to ShipmentItem,
+	Employee{job} to Job
+	/**
+	* A relationship
+	*/
+	Department{employee} to
+	/**
+	* Another side of the same relationship
+	*/
+	Employee
+}
+
+relationship ManyToOne {
+	GradeCode{gradeCodeType} to GradeCodeType,
+    GradeCode{packageType} to PackageType,
+    BrokerData{broker} to Broker,
+    BrokerData{plant} to Plant,
+    PriceList{destination} to Destination,
+    ShipmentRequest{broker} to Broker,
+    ShipmentRequest{plant} to Plant
+}
+
+// defining multiple oneToOne relationships
+relationship OneToOne {
+	JobHistory{job} to Job,
+	JobHistory{department} to Department,
+	JobHistory{employee} to Employee
+}
+
+// Set pagination options
+paginate JobHistory, Employee with infinite-scroll
+paginate Job with pagination
+
+dto * with mapstruct
+
+// Set service options to all except few
+service all with serviceImpl except Employee, Job
+// Set an angular suffix
+angularSuffix * with mySuffix
